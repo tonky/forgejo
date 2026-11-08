@@ -73,7 +73,15 @@ func NewInternalTestServer(t testing.TB, handler optional.Option[http.HandlerFun
 
 	t.Cleanup(func() {
 		reset()
-		err := httpServer.Shutdown(context.Background())
+		// A request stuck in a handler (a hook waiting on git) must not hang the run:
+		// give requests a while to finish, then close their connections.
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		err := httpServer.Shutdown(ctx)
+		if errors.Is(err, context.DeadlineExceeded) {
+			t.Log("internal server: requests still running after 10s, closing")
+			err = httpServer.Close()
+		}
 		require.NoError(t, err)
 	})
 }

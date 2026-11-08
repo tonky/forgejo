@@ -1,6 +1,9 @@
 import {devices, type PlaywrightTestConfig} from '@playwright/test';
 
 const BASE_URL = process.env.GITEA_URL?.replace?.(/\/$/g, '') || 'http://localhost:3003';
+// A run's own reports and artifacts (tests/e2e/utils_e2e.ts): runs side by side in one
+// checkout each set their own E2E_OUTPUT_DIR.
+const OUTPUT_DIR = process.env.E2E_OUTPUT_DIR || 'tests/e2e';
 
 /**
  * @see https://playwright.dev/docs/test-configuration
@@ -33,7 +36,7 @@ export default {
   maxFailures: process.env.CI ? 1 : 0,
 
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: process.env.CI ? 'list' : [['list'], ['html', {outputFolder: 'tests/e2e/reports/', open: 'never'}]],
+  reporter: process.env.CI ? 'list' : [['list'], ['html', {outputFolder: `${OUTPUT_DIR}/reports/`, open: 'never'}]],
 
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
@@ -86,7 +89,7 @@ export default {
   ],
 
   /* Folder for test artifacts created during test execution such as screenshots, traces, etc. */
-  outputDir: 'tests/e2e/test-artifacts/',
+  outputDir: `${OUTPUT_DIR}/test-artifacts/`,
   /* Folder for explicit snapshots for visual testing */
   snapshotDir: 'tests/e2e/test-snapshots/',
   snapshotPathTemplate: '{snapshotDir}/snapshots/{testFilePath}/{projectName}_{arg}{ext}',

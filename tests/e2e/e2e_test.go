@@ -142,10 +142,10 @@ func TestE2e(t *testing.T) {
 				thisTest := runArgs
 				// when all tests are run, use unique artifacts directories per test to preserve artifacts from other tests
 				if testVisual {
-					thisTest = append(thisTest, "--output=tests/e2e/test-artifacts/"+testname)
+					thisTest = append(thisTest, "--output="+filepath.Join(e2eOutputDir(), "test-artifacts", testname))
 				}
 				thisTest = append(thisTest, path)
-				cmd := exec.Command(runArgs[0], thisTest...)
+				cmd := exec.Command(thisTest[0], thisTest[1:]...)
 				cmd.Env = os.Environ()
 				cmd.Env = append(cmd.Env, fmt.Sprintf("GITEA_URL=%s", setting.AppURL))
 				cmd.Dir = setting.AppWorkPath
@@ -153,9 +153,11 @@ func TestE2e(t *testing.T) {
 				cmd.Stdout = os.Stdout
 				cmd.Stderr = os.Stderr
 
+				// A failed spec fails its subtest, and the specs after it still run: one failure
+				// no longer hides the rest of the run's.
 				err := cmd.Run()
 				if err != nil && !testVisual {
-					log.Fatal("Playwright Failed: %s", err)
+					t.Errorf("Playwright Failed: %s", err)
 				}
 			})
 		})

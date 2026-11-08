@@ -19,7 +19,6 @@ import (
 	"forgejo.org/modules/storage"
 	"forgejo.org/routers/api/actions"
 	actions_service "forgejo.org/services/actions"
-	"forgejo.org/tests"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -386,7 +385,8 @@ func TestActionsArtifactV4DownloadSingle(t *testing.T) {
 }
 
 func TestActionsArtifactV4DownloadRange(t *testing.T) {
-	defer tests.PrepareTestEnv(t)()
+	// Downloads the artifact-v4-download fixture, whose content lives in the artifacts storage.
+	defer prepareTestEnvActionsArtifacts(t)()
 
 	bstr := strings.Repeat("D", 100)
 	body := strings.Repeat("A", 100) + bstr

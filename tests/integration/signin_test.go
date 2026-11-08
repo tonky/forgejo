@@ -21,6 +21,7 @@ import (
 	"forgejo.org/tests"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func testLoginFailed(t *testing.T, username, password, message string) {
@@ -306,13 +307,23 @@ func TestGlobalTwoFactorRequirement(t *testing.T) {
 
 func TestTwoFactorWithPasswordChange(t *testing.T) {
 	defer unittest.OverrideFixtures("models/fixtures/TestTwoFactorWithPasswordChange")()
+	// Load the fixtures (including the override) instead of relying on an earlier test's database.
+	defer tests.PrepareTestEnv(t)()
 
 	normalUser := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 4})
-	changePasswordUser := unittest.AssertExistsAndLoadBean(t, &user_model.User{MustChangePassword: true})
+	// xorm ignores bool fields when building conditions from a bean, so `MustChangePassword: true`
+	// would match any user: load the override fixture's user explicitly.
+	changePasswordUser := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2001})
+	assert.True(t, changePasswordUser.MustChangePassword)
 
 	runTest := func(t *testing.T, user *user_model.User, requireTOTP bool) {
 		t.Helper()
 		defer unittest.AssertSuccessfulDelete(t, &auth.TwoFactor{UID: user.ID})
+
+		if user.MustChangePassword {
+			// An earlier run changed this user's password, which clears the flag: set it again.
+			require.NoError(t, user_model.UpdateUserCols(t.Context(), user, "must_change_password"))
+		}
 
 		session := loginUser(t, user.Name)
 
@@ -329,7 +340,7 @@ func TestTwoFactorWithPasswordChange(t *testing.T) {
 				Password: "password",
 				Retype:   "password",
 			})
-			resp = session.MakeRequest(t, req, http.StatusOK)
+			resp = session.MakeRequest(t, req, http.StatusSeeOther)
 			assert.Equal(t, "/user/settings/security", resp.Header().Get("Location"))
 		}
 

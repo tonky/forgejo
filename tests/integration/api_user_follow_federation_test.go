@@ -16,9 +16,11 @@ import (
 	"forgejo.org/modules/structs"
 	"forgejo.org/modules/test"
 	"forgejo.org/routers"
+	"forgejo.org/services/federation"
 	"forgejo.org/tests"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestActivityPubFollowFederated(t *testing.T) {
@@ -26,6 +28,10 @@ func TestActivityPubFollowFederated(t *testing.T) {
 	defer test.MockVariableValue(&setting.Federation.Enabled, true)()
 	defer test.MockVariableValue(&setting.Federation.InsecureAllowInvalidHosts, true)()
 	defer test.MockVariableValue(&testWebRoutes, routers.NormalRoutes())()
+
+	// Federation is disabled at startup, so its delivery queue only exists once Init runs
+	// with federation enabled: don't rely on another test having done it.
+	require.NoError(t, federation.Init())
 
 	mock := test.NewFederationServerMock()
 	federatedSrv := mock.DistantServer(t)

@@ -1,0 +1,8 @@
+#!/bin/sh
+# `bin/<tool>` (a link here, written by `enact-lab showcase push`): runs bin/<os>-<arch>/<tool>.
+set -eu
+os="$(uname -s | tr '[:upper:]' '[:lower:]' | sed 's/^darwin$/macos/')"
+arch="$(uname -m | sed 's/^arm64$/aarch64/;s/^amd64$/x86_64/')"
+dir="$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)/${os}-${arch}"
+export PATH="${dir}:${PATH}"
+exec "${dir}/$(basename -- "$0")" "$@"

@@ -104,15 +104,22 @@ func IsLinkStr(link string) bool {
 // regexp for full links to issues/pulls
 var issueFullPattern *regexp.Regexp
 
-// Once for to prevent races
-var issueFullPatternOnce sync.Once
+// The setting.AppURL issueFullPattern was built from: rebuilt when it changes, as tests
+// serve the instance at other URLs. The mutex prevents races.
+var (
+	issueFullPatternMu     sync.Mutex
+	issueFullPatternAppURL string
+)
 
 func getIssueFullPattern() *regexp.Regexp {
-	issueFullPatternOnce.Do(func() {
+	issueFullPatternMu.Lock()
+	defer issueFullPatternMu.Unlock()
+	if issueFullPattern == nil || issueFullPatternAppURL != setting.AppURL {
+		issueFullPatternAppURL = setting.AppURL
 		// example: https://domain/org/repo/pulls/27#hash
 		issueFullPattern = regexp.MustCompile(regexp.QuoteMeta(setting.AppURL) +
 			`(?P<user>[\w_.-]+)\/(?P<repo>[\w_.-]+)\/(?:issues|pulls)\/(?P<num>(?:\w{1,10}-)?[1-9][0-9]*)(?P<subpath>\/[\w_.-]+)?(?:(?P<comment>#(?:issue|issuecomment)-\d+)|(?:[\?#](?:\S+)?))?\b`)
-	})
+	}
 	return issueFullPattern
 }
 

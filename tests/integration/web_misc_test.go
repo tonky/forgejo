@@ -21,6 +21,9 @@ import (
 )
 
 func TestManifestJson(t *testing.T) {
+	// setting.CustomPath is the checkout's custom/, shared by every test process running in it:
+	// use a private one, so a custom manifest written elsewhere can't leak into this test.
+	defer test.MockVariableValue(&setting.CustomPath, t.TempDir())()
 	defer tests.PrepareTestEnv(t)()
 
 	session := loginUser(t, "user2")
@@ -37,6 +40,9 @@ func TestManifestJson(t *testing.T) {
 }
 
 func TestManifestJsonStandalone(t *testing.T) {
+	// setting.CustomPath is the checkout's custom/, shared by every test process running in it:
+	// use a private one, so a custom manifest written elsewhere can't leak into this test.
+	defer test.MockVariableValue(&setting.CustomPath, t.TempDir())()
 	defer tests.PrepareTestEnv(t)()
 	defer test.MockVariableValue(&setting.PWA.Standalone, true)()
 
@@ -55,6 +61,9 @@ func TestManifestJsonStandalone(t *testing.T) {
 }
 
 func TestManifestJsonCustomFile(t *testing.T) {
+	// setting.CustomPath is the checkout's custom/, shared by every test process running in it:
+	// write the custom manifest to a private one, so it can't leak into concurrent tests.
+	defer test.MockVariableValue(&setting.CustomPath, t.TempDir())()
 	require.NoError(t, os.MkdirAll(util.FilePathJoinAbs(setting.CustomPath, "public"), 0o777))
 	manifestPath := util.FilePathJoinAbs(setting.CustomPath, "public/manifest.json")
 	file, err := os.OpenFile(manifestPath, os.O_CREATE|os.O_RDWR, 0o777)

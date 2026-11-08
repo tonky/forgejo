@@ -140,6 +140,9 @@ func testGit(t *testing.T, u *url.URL) {
 	t.Run("SSH", func(t *testing.T) {
 		forEachObjectFormat(t, func(t *testing.T, objectFormat git.ObjectFormat) {
 			defer tests.PrintCurrentTest(t)()
+			// PushRemoteMessages clones over HTTP: set its credentials here, not only in
+			// the HTTP subtest, so SSH passes on its own.
+			u.User = url.UserPassword(username, userPassword)
 			sshContext := baseAPITestContext
 			sshContext.Reponame = "repo-tmp-18-" + objectFormat.Name()
 			keyname := "my-testing-key"

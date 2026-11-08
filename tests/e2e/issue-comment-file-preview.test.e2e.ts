@@ -21,7 +21,7 @@ test('Escape button in file preview', async ({page}) => {
 
   // Create a new issue
   await page.getByPlaceholder('Title').fill(dynamic_id());
-  await page.getByPlaceholder('Leave a comment').fill(`http://localhost:3003${url}#L1`);
+  await page.getByPlaceholder('Leave a comment').fill(`${test.info().project.use.baseURL}${url}#L1`);
   await page.getByRole('button', {name: 'Create issue'}).click();
 
   await expect(page).toHaveURL(/\/user2\/repo1\/issues\/\d+$/);

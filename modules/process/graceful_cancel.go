@@ -6,6 +6,7 @@ package process
 import (
 	"os"
 	"os/exec"
+	"runtime"
 	"slices"
 	"syscall"
 	"time"
@@ -14,6 +15,11 @@ import (
 // Identify errors that can occur in kill or wait that indicate the kill was actually successful as the process doesn't
 // exist anymore.
 func killErrorSafeToIgnore(err error) bool {
+	// macOS answers kill(2) on a process group whose members have all exited, but aren't
+	// reaped yet, with EPERM rather than ESRCH.
+	if runtime.GOOS == "darwin" && isErrno(err, syscall.EPERM) {
+		return true
+	}
 	return isErrno(err,
 		syscall.ESRCH,  // No such process
 		syscall.ECHILD, // No child processes

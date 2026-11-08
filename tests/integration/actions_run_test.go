@@ -19,6 +19,10 @@ import (
 )
 
 func TestActionRunDeletion(t *testing.T) {
+	// The beans below are looked up before any subtest prepares the test environment: load
+	// the fixtures so the test doesn't depend on a database populated by earlier tests.
+	require.NoError(t, unittest.LoadFixtures())
+
 	user2 := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
 	repo1 := unittest.AssertExistsAndLoadBean(t, &repo_model.Repository{ID: 1, OwnerID: user2.ID})
 	user5 := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 5})
@@ -131,6 +135,10 @@ func TestActionRunPrioritization(t *testing.T) {
 		{ID: 535685, Index: 4, RepoID: 62, OwnerID: 2, Status: actions_model.StatusWaiting},
 	}
 
+	// The beans below are looked up before any subtest prepares the test environment: load
+	// the fixtures so the test doesn't depend on a database populated by earlier tests.
+	require.NoError(t, unittest.LoadFixtures())
+
 	user2 := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
 	user5 := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 5})
 	repo62 := unittest.AssertExistsAndLoadBean(t, &repo_model.Repository{ID: 62, OwnerID: user2.ID})
@@ -223,6 +231,10 @@ func TestActionRunDeprioritization(t *testing.T) {
 		{ID: 535684, Index: 1, RepoID: 1, OwnerID: 2, Status: actions_model.StatusBlocked, Priority: actions_model.DefaultRunPriority, Prioritize: true},
 		{ID: 535685, Index: 4, RepoID: 62, OwnerID: 2, Status: actions_model.StatusWaiting},
 	}
+
+	// The beans below are looked up before any subtest prepares the test environment: load
+	// the fixtures so the test doesn't depend on a database populated by earlier tests.
+	require.NoError(t, unittest.LoadFixtures())
 
 	user2 := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
 	user5 := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 5})

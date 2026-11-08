@@ -438,21 +438,22 @@ func InsertTeamMember(ctx context.Context, team *organization.Team, userID int64
 		return nil, err
 	}
 
-	// this behaviour may spend much time so run it in a goroutine
+	// Watched before returning, not in a goroutine: watching bumps the repositories'
+	// num_watches, and a goroutine still doing it raced the caller's next transaction. Its
+	// access insert checks the repositories' foreign keys, which MariaDB's
+	// innodb_snapshot_isolation (on by default since 11.6.2) fails with Error 1020 once the
+	// rows changed after the transaction's snapshot (adding a user to two teams in a row).
 	// FIXME: Update watch repos batchly
 	if setting.Service.AutoWatchNewRepos {
 		// Get team and its repositories.
 		if err := team.LoadRepositories(ctx); err != nil {
 			log.Error("team.LoadRepositories failed: %v", err)
 		}
-		// FIXME: in the goroutine, it can't access the "ctx", it could only use db.DefaultContext at the moment
-		go func(repos []*repo_model.Repository) {
-			for _, repo := range repos {
-				if err = repo_model.WatchIfAutoWatchNewRepos(db.DefaultContext, userID, repo.ID); err != nil {
-					log.Error("watch repo failed: %v", err)
-				}
+		for _, repo := range team.Repos {
+			if err := repo_model.WatchIfAutoWatchNewRepos(ctx, userID, repo.ID); err != nil {
+				log.Error("watch repo failed: %v", err)
 			}
-		}(team.Repos)
+		}
 	}
 
 	return teamUser, nil

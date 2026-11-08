@@ -1,0 +1,31 @@
+# Integration tests whose subtests pass apart, and the subtests whose own subtests do:
+# a full sharded run spreads their recorded subtests across shards
+# (helpers/integration-tests.sh), and the reach map holds each subtest on its own
+# (helpers/trace-integration.sh), so a change runs only those it reaches, apart.
+#
+# Each of these bounded a 28-shard run on its own. TestGit's SSH subtests used to clone over HTTP with the credentials its HTTP subtest
+# set on the shared URL (overlay/patches/0001-testgit-ssh-runs-alone.patch).
+TestGit
+TestGit/HTTP
+TestGit/SSH
+TestInstanceSigning
+TestInstanceSigning/PGP
+TestInstanceSigning/SSH
+TestPullRequestCommentPlacement
+# Each of their subtests passes alone (checked one process per subtest).
+TestActionsRunsEvaluateIf
+TestActionsScheduleDetection_PullRequest
+TestAPIIssueTemplateList
+TestGitPush
+TestGitPush/sha1
+TestGitPush/sha256
+TestLinguistSupport
+TestOrgProfile
+TestPullAutoMergeAfterCommitStatusSucceed
+TestPullReviewApplySuggestion
+TestPullReviewApplySuggestionBatch
+TestPullReviewSuggestionRender
+TestUserProfile
+# Not split: their subtests build on the ones before them.
+#   TestPullMergeBranchProtect (16 of 17 fail alone), TestCodeOwner (12 of 20),
+#   TestPatchStatus (Conflict, Ancestor), TestCommitMail (Delete, Cherry_pick)

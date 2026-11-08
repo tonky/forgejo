@@ -87,7 +87,7 @@ test('New repo: initialize later', async ({page}) => {
   await expect(page.getByText('Preview')).toBeVisible();
   await page.getByPlaceholder('Add "<filename>"').fill('My first commit message');
   await page.getByRole('button', {name: 'Commit changes'}).click();
-  expect(page.url()).toBe(`http://localhost:3003/user2/${reponame}/src/branch/devbranch/README.md`);
+  expect(page.url()).toBe(`${test.info().project.use.baseURL}/user2/${reponame}/src/branch/devbranch/README.md`);
   await expect(page.getByRole('link', {name: 'My first commit message'})).toBeVisible();
   await expect(page.getByText('Hello Forgejo!')).toBeVisible();
   await screenshot(page);

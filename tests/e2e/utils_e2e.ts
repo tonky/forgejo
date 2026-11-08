@@ -2,7 +2,10 @@ import {expect, test as baseTest, type Browser, type BrowserContextOptions, type
 
 import * as path from 'node:path';
 
-const AUTH_PATH = 'tests/e2e/.auth';
+// Where a run keeps its session cookies and test artifacts (e2eOutputDir in utils_e2e_test.go):
+// runs side by side in one checkout each set their own E2E_OUTPUT_DIR.
+const OUTPUT_DIR = process.env.E2E_OUTPUT_DIR || 'tests/e2e';
+const AUTH_PATH = path.join(OUTPUT_DIR, '.auth');
 
 type AuthScope = 'logout' | 'shared' | 'webauthn';
 
@@ -38,7 +41,7 @@ export async function test_context(browser: Browser, options?: BrowserContextOpt
   return context;
 }
 
-const ARTIFACTS_PATH = `tests/e2e/test-artifacts`;
+const ARTIFACTS_PATH = path.join(OUTPUT_DIR, 'test-artifacts');
 const LOGIN_PASSWORD = 'password';
 
 // log in user and store session info. This should generally be

@@ -41,7 +41,7 @@ test('Markdown image preview behaviour', async ({page}) => {
   // Check for the image preview via the expected attribute
   // Note: branch master may redirect to a dyn-id- one
   const preview = page.locator('div[data-tab="preview"] p[dir="auto"]');
-  await expect(preview.locator('a[href^="http://localhost:3003/user2/repo1/media/branch/"]')).toHaveCount(1);
+  await expect(preview.locator(`a[href^="${test.info().project.use.baseURL}/user2/repo1/media/branch/"]`)).toHaveCount(1);
   await expect(preview.locator('a[href$="/assets/logo.svg"]')).toHaveCount(1);
   await screenshot(page);
 });

@@ -47,7 +47,10 @@ var (
 	issueCloseKeywordsPat, issueReopenKeywordsPat *regexp.Regexp
 	issueKeywordsOnce                             sync.Once
 
-	giteaHostInit         sync.Once
+	// The host and pattern are built from setting.AppURL, and rebuilt when it changes:
+	// tests serve the instance at other URLs, and a value built for one would stay.
+	giteaHostMu           sync.Mutex
+	giteaHostAppURL       *string
 	giteaHost             string
 	giteaIssuePullPattern *regexp.Regexp
 
@@ -171,7 +174,16 @@ func doNewKeywords(close, reopen []string) {
 
 // getGiteaHostName returns a normalized string with the local host name, with no scheme or port information
 func getGiteaHostName() string {
-	giteaHostInit.Do(func() {
+	host, _ := giteaHostAndIssuePullPattern()
+	return host
+}
+
+func giteaHostAndIssuePullPattern() (string, *regexp.Regexp) {
+	giteaHostMu.Lock()
+	defer giteaHostMu.Unlock()
+	if giteaHostAppURL == nil || *giteaHostAppURL != setting.AppURL {
+		appURL := setting.AppURL
+		giteaHostAppURL = &appURL
 		if uapp, err := url.Parse(setting.AppURL); err == nil {
 			giteaHost = strings.ToLower(uapp.Host)
 			giteaIssuePullPattern = regexp.MustCompile(
@@ -184,14 +196,14 @@ func getGiteaHostName() string {
 			giteaHost = ""
 			giteaIssuePullPattern = nil
 		}
-	})
-	return giteaHost
+	}
+	return giteaHost, giteaIssuePullPattern
 }
 
 // getGiteaIssuePullPattern
 func getGiteaIssuePullPattern() *regexp.Regexp {
-	getGiteaHostName()
-	return giteaIssuePullPattern
+	_, pattern := giteaHostAndIssuePullPattern()
+	return pattern
 }
 
 // FindAllMentionsMarkdown matches mention patterns in given content and

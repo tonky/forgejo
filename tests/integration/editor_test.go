@@ -16,6 +16,7 @@ import (
 	"testing"
 
 	auth_model "forgejo.org/models/auth"
+	git_model "forgejo.org/models/git"
 	repo_model "forgejo.org/models/repo"
 	"forgejo.org/models/unittest"
 	user_model "forgejo.org/models/user"
@@ -69,19 +70,33 @@ func TestCreateFileOnProtectedBranch(t *testing.T) {
 
 		// remove the protected branch
 
-		// Change master branch to protected
-		req = NewRequestWithValues(t, "POST", "/user2/repo1/settings/branches/1/delete", map[string]string{})
+		// Don't assume the rule's ID: it depends on how many rules earlier tests created.
+		rule, err := git_model.GetProtectedBranchRuleByName(t.Context(), 1, "master")
+		require.NoError(t, err)
+		require.NotNil(t, rule)
 
-		resp = session.MakeRequest(t, req, http.StatusOK)
+		deleteRule := func(t *testing.T, ruleID int64) {
+			t.Helper()
+			req := NewRequestWithValues(t, "POST", fmt.Sprintf("/user2/repo1/settings/branches/%d/delete", ruleID), map[string]string{})
+			resp := session.MakeRequest(t, req, http.StatusOK)
 
-		res := make(map[string]string)
-		require.NoError(t, json.NewDecoder(resp.Body).Decode(&res))
-		assert.Equal(t, "/user2/repo1/settings/branches", res["redirect"])
+			res := make(map[string]string)
+			require.NoError(t, json.NewDecoder(resp.Body).Decode(&res))
+			assert.Equal(t, "/user2/repo1/settings/branches", res["redirect"])
+		}
 
-		// Check if master branch has been locked successfully
+		// Removing a rule that doesn't exist fails
+		missingID := rule.ID + 1
+		deleteRule(t, missingID)
 		flashCookie = session.GetCookie(app_context.CookieNameFlash)
 		assert.NotNil(t, flashCookie)
-		assert.Equal(t, "error%3DRemoving%2Bbranch%2Bprotection%2Brule%2B%25221%2522%2Bfailed.", flashCookie.Value)
+		assert.Equal(t, fmt.Sprintf("error%%3DRemoving%%2Bbranch%%2Bprotection%%2Brule%%2B%%2522%d%%2522%%2Bfailed.", missingID), flashCookie.Value)
+
+		// Removing the rule of master succeeds
+		deleteRule(t, rule.ID)
+		flashCookie = session.GetCookie(app_context.CookieNameFlash)
+		assert.NotNil(t, flashCookie)
+		assert.Equal(t, "success%3DBranch%2Bprotection%2Bfor%2Brule%2B%2522master%2522%2Bhas%2Bbeen%2Bremoved.", flashCookie.Value)
 	})
 }
 

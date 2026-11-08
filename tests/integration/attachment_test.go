@@ -145,6 +145,12 @@ func TestGetAttachmentViaAPITokens(t *testing.T) {
 	// Create attachment data for an attachment added by this test's fixture.
 	_, err := storage.Attachments.Save(repo_model.AttachmentRelativePath("d962b49e-e32a-4b72-922d-33b551b629e2"), strings.NewReader("hello universe"), -1)
 	require.NoError(t, err)
+	// Create attachment data for the repo1 and repo2 fixture attachments, rather than relying on
+	// TestGetAttachment having written it to the (persistent) attachment storage earlier.
+	for _, uuid := range []string{"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11", "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12"} {
+		_, err = storage.Attachments.Save(repo_model.AttachmentRelativePath(uuid), strings.NewReader("hello world"), -1)
+		require.NoError(t, err)
+	}
 
 	// Enable Issues unit on repo 16, one of our test targets.
 	repo_service.UpdateRepositoryUnits(t.Context(),
@@ -366,6 +372,12 @@ func TestGetAttachmentViaAuthorizedIntegration(t *testing.T) {
 	// Create attachment data for an attachment added by this test's fixture.
 	_, err := storage.Attachments.Save(repo_model.AttachmentRelativePath("d962b49e-e32a-4b72-922d-33b551b629e2"), strings.NewReader("hello universe"), -1)
 	require.NoError(t, err)
+	// Create attachment data for the repo1 and repo2 fixture attachments, rather than relying on
+	// TestGetAttachment having written it to the (persistent) attachment storage earlier.
+	for _, uuid := range []string{"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11", "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12"} {
+		_, err = storage.Attachments.Save(repo_model.AttachmentRelativePath(uuid), strings.NewReader("hello world"), -1)
+		require.NoError(t, err)
+	}
 
 	// Enable Issues unit on repo 16, one of our test targets.
 	repo_service.UpdateRepositoryUnits(t.Context(),

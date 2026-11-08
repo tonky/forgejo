@@ -77,6 +77,20 @@ func onForgejoRun(t *testing.T, callback func(*testing.T, *url.URL), prepare ...
 	}, prepare...)
 }
 
+// The directory a run keeps its session cookies and test artifacts in: E2E_OUTPUT_DIR, as
+// utils_e2e.ts and playwright.config.ts read it, relative to the work path. Runs side by side
+// in one checkout each set their own; tests/e2e by default.
+func e2eOutputDir() string {
+	dir := os.Getenv("E2E_OUTPUT_DIR")
+	if dir == "" {
+		dir = filepath.Join("tests", "e2e")
+	}
+	if filepath.IsAbs(dir) {
+		return dir
+	}
+	return filepath.Join(setting.AppWorkPath, dir)
+}
+
 func createSessions(t testing.TB) {
 	t.Helper()
 	// copied from playwright.config.ts
@@ -98,7 +112,7 @@ func createSessions(t testing.TB) {
 		"user40",
 	}
 
-	authState := filepath.Join(setting.AppWorkPath, "tests", "e2e", ".auth")
+	authState := filepath.Join(e2eOutputDir(), ".auth")
 	err := os.RemoveAll(authState)
 	require.NoError(t, err)
 

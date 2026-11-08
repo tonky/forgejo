@@ -52,10 +52,16 @@ func TestInstanceSigning(t *testing.T) {
 
 			pubKey, _, _, _, err := ssh.ParseAuthorizedKey(pubKeyContent)
 			require.NoError(t, err)
-			require.NoError(t, os.Chmod(signingKeyPath, 0o600))
+			// Chmodding the tracked key in place moves its ctime mid-test: write a 0o600
+			// copy in t.TempDir() after reading the tracked key.
+			privKeyContent, err := os.ReadFile(signingKeyPath)
+			require.NoError(t, err)
+			tmpKeyPath := path.Join(t.TempDir(), "ssh-signing-key")
+			require.NoError(t, os.WriteFile(tmpKeyPath, privKeyContent, 0o600))
+			require.NoError(t, os.WriteFile(tmpKeyPath+".pub", pubKeyContent, 0o644))
 			defer test.MockVariableValue(&setting.SSHInstanceKey, pubKey)()
 			defer test.MockVariableValue(&setting.Repository.Signing.Format, "ssh")()
-			defer test.MockVariableValue(&setting.Repository.Signing.SigningKey, signingKeyPath)()
+			defer test.MockVariableValue(&setting.Repository.Signing.SigningKey, tmpKeyPath)()
 
 			// Ensure the git config is updated with the new signing format.
 			require.NoError(t, git.InitFull(t.Context()))

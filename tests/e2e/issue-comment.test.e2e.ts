@@ -333,7 +333,7 @@ test('Quote reply', async ({page}, workerInfo) => {
   await opener.click();
   await page.click('#issuecomment-1001 .quote-reply');
 
-  await expect(editorTextarea).toHaveValue('@user2 wrote in http://localhost:3003/user2/repo1/issues/1#issuecomment-1001:\n\n' +
+  await expect(editorTextarea).toHaveValue(`@user2 wrote in ${test.info().project.use.baseURL}/user2/repo1/issues/1#issuecomment-1001:\n\n` +
                                            '> ## [](#lorem-ipsum)Lorem Ipsum\n' +
                                            '> \n' +
                                            '> I would like to say that **I am not appealed** that it took _so long_ for this `feature` to be [created](https://example.com) \\(e^{\\pi i} + 1 = 0\\)\n' +
@@ -368,7 +368,7 @@ test('Quote reply', async ({page}, workerInfo) => {
 
   await page.click('#issuecomment-1001 .quote-reply');
 
-  await expect(editorTextarea).toHaveValue('@user2 wrote in http://localhost:3003/user2/repo1/issues/1#issuecomment-1001:\n\n' +
+  await expect(editorTextarea).toHaveValue(`@user2 wrote in ${test.info().project.use.baseURL}/user2/repo1/issues/1#issuecomment-1001:\n\n` +
                                            '> ## Ipsum\n' +
                                            '> \n' +
                                            '> I would like to say that **I am no**\n\n');
@@ -391,7 +391,7 @@ test('Quote reply', async ({page}, workerInfo) => {
 
   await page.click('#issuecomment-1001 .quote-reply');
 
-  await expect(editorTextarea).toHaveValue('@user2 wrote in http://localhost:3003/user2/repo1/issues/1#issuecomment-1001:\n\n' +
+  await expect(editorTextarea).toHaveValue(`@user2 wrote in ${test.info().project.use.baseURL}/user2/repo1/issues/1#issuecomment-1001:\n\n` +
                                            '> **t appealed** that it took _so long_ for this `feature` to be [cre](https://example.com)\n\n');
 
   await editorTextarea.fill('');
@@ -408,7 +408,7 @@ test('Pull quote reply', async ({page}, workerInfo) => {
   await page.click('.comment-code-cloud .dialog-dropdown .opener');
   await page.click('.comment-code-cloud .quote-reply');
 
-  await expect(editorTextarea).toHaveValue('@user2 wrote in http://localhost:3003/user2/commitsonpr/pulls/1/files#issuecomment-1002:\n\n' +
+  await expect(editorTextarea).toHaveValue(`@user2 wrote in ${test.info().project.use.baseURL}/user2/commitsonpr/pulls/1/files#issuecomment-1002:\n\n` +
                                            '> ## [](#lorem-ipsum)Lorem Ipsum\n' +
                                            '> \n' +
                                            '> I would like to say that **I am not appealed** that it took _so long_ for this `feature` to be [created](https://example.com) \\(e^{\\pi i} + 1 = 0\\)\n' +

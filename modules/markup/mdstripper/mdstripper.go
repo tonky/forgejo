@@ -23,9 +23,12 @@ import (
 	"github.com/yuin/goldmark/text"
 )
 
+// giteaHost is parsed from setting.AppURL, and again when it changes: tests serve the
+// instance at other URLs, and a host parsed for one would stay.
 var (
-	giteaHostInit sync.Once
-	giteaHost     *url.URL
+	giteaHostMu     sync.Mutex
+	giteaHostAppURL string
+	giteaHost       *url.URL
 )
 
 type stripRenderer struct {
@@ -191,11 +194,14 @@ func StripMarkdownBytes(rawBytes []byte) ([]byte, []string) {
 
 // getGiteaHostName returns a normalized string with the local host name, with no scheme or port information
 func getGiteaHost() *url.URL {
-	giteaHostInit.Do(func() {
+	giteaHostMu.Lock()
+	defer giteaHostMu.Unlock()
+	if giteaHost == nil || giteaHostAppURL != setting.AppURL {
+		giteaHostAppURL = setting.AppURL
 		var err error
 		if giteaHost, err = url.Parse(setting.AppURL); err != nil {
 			giteaHost = &url.URL{}
 		}
-	})
+	}
 	return giteaHost
 }

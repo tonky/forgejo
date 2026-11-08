@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"forgejo.org/modules/setting"
+	"forgejo.org/modules/test"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -584,5 +585,20 @@ func TestParseCloseKeywords(t *testing.T) {
 			assert.Len(t, res[0], 2)
 			assert.Equal(t, test.expected, res[0][1])
 		}
+	}
+}
+
+// Integration tests serve the instance at other URLs for a while: a link to an issue at
+// the URL of the moment is a reference, whichever URL was the first one parsed for.
+func TestIssueLinksFollowAppURL(t *testing.T) {
+	defer test.MockVariableValue(&setting.AppURL, "https://one.example/")()
+	assert.Equal(t, "one.example", getGiteaHostName())
+
+	setting.AppURL = "https://two.example:3000/"
+	assert.Equal(t, "two.example:3000", getGiteaHostName())
+	refs := FindAllIssueReferencesMarkdown("I like https://two.example:3000/owner/repo/issues/3 ...")
+	if assert.Len(t, refs, 1) {
+		assert.Equal(t, int64(3), refs[0].Index)
+		assert.Equal(t, "owner", refs[0].Owner)
 	}
 }
